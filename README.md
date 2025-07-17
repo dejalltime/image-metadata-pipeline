@@ -13,7 +13,7 @@ A serverless pipeline that automatically extracts and stores metadata from user�
 ## Architecture Overview
 
 ```
-Blob Upload (.jpg/.png/.gif)
+Blob Upload (.jpg/.png/.svg)
          ⬇
 [BlobTriggerFunction]            ← Blob trigger starts orchestration
          ⬇
@@ -70,7 +70,7 @@ image-metadata-pipeline/      ← Project root
 
 4. **Run the Functions host locally**
    ```bash
-   func start --verbose
+   func start
    ```
 
 5. **Test via Storage Explorer**  
