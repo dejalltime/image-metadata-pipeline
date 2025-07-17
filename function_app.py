@@ -45,26 +45,49 @@ def OrchestratorFunction(context: df.DurableOrchestrationContext):
 # --- 4) Activity: Extract metadata ---
 @my_app.activity_trigger(input_name="input")
 def ExtractMetadataActivity(input: dict) -> dict:
-    # input["name"] looks like "images-input/myPhoto.jpg"
-    container, blob_name = input["name"].split("/", 1)
+    logging.info(f"[Extract] Start – input={input}")
+    # Split out container and blob name
+    try:
+        container, blob_name = input["name"].split("/", 1)
+    except ValueError:
+        logging.error(f"[Extract] Invalid input['name']: {input['name']}")
+        raise
 
-    # Download the real blob bytes
-    blob_client = blob_service_client.get_blob_client(
-        container=container, blob=blob_name
-    )
+    logging.info(f"[Extract] Downloading blob – container={container}, blob={blob_name}")
+    blob_client = blob_service_client.get_blob_client(container=container, blob=blob_name)
     raw = blob_client.download_blob().readall()
+    logging.info(f"[Extract] Downloaded {len(raw)} bytes")
 
-    # Now Pillow will recognize it
-    img = Image.open(io.BytesIO(raw))
-    w, h = img.size
+    # SVG vs raster
+    if blob_name.lower().endswith(".svg"):
+        logging.info("[Extract] Detected SVG, parsing XML for dimensions")
+        import xml.etree.ElementTree as ET
+        try:
+            root = ET.fromstring(raw)
+            w = int(float(root.attrib.get("width", 0)))
+            h = int(float(root.attrib.get("height", 0)))
+        except Exception as e:
+            logging.error(f"[Extract] SVG parse error: {e}")
+            w, h = 0, 0
+        fmt = "SVG"
+    else:
+        try:
+            img = Image.open(io.BytesIO(raw))
+            w, h = img.size
+            fmt = img.format
+        except Exception as e:
+            logging.error(f"[Extract] Pillow open error: {e}")
+            raise
 
-    return {
+    result = {
         "fileName": blob_name,
         "fileSizeKB": round(input["size"] / 1024, 2),
         "width": w,
         "height": h,
-        "format": img.format
+        "format": fmt
     }
+    logging.info(f"[Extract] Result – {result}")
+    return result
 
 # --- 5) Activity: Store metadata in SQL + optional blob record ---
 @my_app.activity_trigger(input_name="metadata")
