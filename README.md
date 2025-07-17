@@ -6,7 +6,7 @@ A serverless pipeline that automatically extracts and stores metadata from userâ
 
 ## Demo Video
 
-- **Project Walkthrough:** [Watch on YouTube](https://youtu.be/Mf24fIWuZaA)
+- **Project Walkthrough:** [Watch on YouTube](https://youtu.be/zQWpIJLWPZ4)
 
 ---
 

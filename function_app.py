@@ -45,7 +45,7 @@ def OrchestratorFunction(context: df.DurableOrchestrationContext):
 # --- 4) Activity: Extract metadata ---
 @my_app.activity_trigger(input_name="input")
 def ExtractMetadataActivity(input: dict) -> dict:
-    logging.info(f"[Extract] Start – input={input}")
+    logging.info(f"[Extract] Start - input={input}")
     # Split out container and blob name
     try:
         container, blob_name = input["name"].split("/", 1)
